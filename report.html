@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code 源码解析报告</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent2: #7ee787;
+            --accent3: #d2a8ff;
+            --border: #30363d;
+            --code-bg: #1a1f2b;
+            --warning: #d29922;
+            --danger: #f85149;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header */
+        .hero {
+            text-align: center;
+            padding: 60px 0 40px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 40px;
+        }
+        .hero h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, var(--accent), var(--accent3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+        .hero .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+        .badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .badge-blue { background: #1f3a5f; color: var(--accent); }
+        .badge-green { background: #1a3a2a; color: var(--accent2); }
+        .badge-purple { background: #2d1f4e; color: var(--accent3); }
+        .badge-orange { background: #3d2a0f; color: #f0883e; }
+
+        /* Navigation */
+        .toc {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px 32px;
+            margin-bottom: 48px;
+        }
+        .toc h2 {
+            color: var(--accent);
+            margin-bottom: 16px;
+            font-size: 1.3em;
+        }
+        .toc ol {
+            columns: 2;
+            column-gap: 32px;
+            padding-left: 20px;
+        }
+        .toc li {
+            margin-bottom: 8px;
+            break-inside: avoid;
+        }
+        .toc a {
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .toc a:hover { color: var(--accent); }
+
+        /* Sections */
+        .chapter {
+            margin-bottom: 64px;
+            scroll-margin-top: 24px;
+        }
+        h2.chapter-title {
+            font-size: 1.8em;
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 28px;
+        }
+        h3 {
+            font-size: 1.3em;
+            color: var(--accent2);
+            margin: 32px 0 16px;
+        }
+        h4 {
+            font-size: 1.1em;
+            color: var(--accent3);
+            margin: 24px 0 12px;
+        }
+
+        /* Content */
+        p { margin-bottom: 16px; }
+        strong { color: var(--accent); }
+        em { color: var(--text-secondary); }
+
+        blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 12px 20px;
+            margin: 16px 0;
+            background: var(--bg-secondary);
+            border-radius: 0 6px 6px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        ul, ol { padding-left: 24px; margin-bottom: 16px; }
+        li { margin-bottom: 6px; }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 24px;
+            font-size: 0.95em;
+        }
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+            text-align: left;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            font-weight: 600;
+        }
+        td {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            vertical-align: top;
+        }
+        tr:nth-child(even) td { background: var(--bg-secondary); }
+
+        /* Code */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'JetBrains Mono', 'Menlo', monospace;
+            font-size: 0.9em;
+            color: var(--accent3);
+        }
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 16px 0 24px;
+            line-height: 1.5;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text);
+        }
+
+        /* Mermaid */
+        .mermaid-wrapper {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 20px 0 28px;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        /* Info boxes */
+        .info-box {
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            border-left: 4px solid;
+        }
+        .info-box.tip { background: #1a3a2a; border-color: var(--accent2); }
+        .info-box.warning { background: #3d2a0f; border-color: var(--warning); }
+        .info-box.danger { background: #3a1a1a; border-color: var(--danger); }
+
+        /* ASCII art boxes */
+        .ascii-box {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+            white-space: pre;
+            overflow-x: auto;
+            font-size: 0.85em;
+            line-height: 1.4;
+            margin: 16px 0 24px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        /* Back to top */
+        .back-top {
+            text-align: right;
+            margin-top: 24px;
+        }
+        .back-top a {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.8em; }
+            .toc ol { columns: 1; }
+            .container { padding: 20px 16px; }
+            table { font-size: 0.85em; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- Hero -->
+<div class="hero" id="top">
+    <h1>Claude Code 源码解析报告</h1>
+    <p class="subtitle">基于 2026年3月31日 npm source map 泄漏事件的完整技术分析</p>
+    <div class="badges">
+        <span class="badge badge-blue">512,000+ 行代码</span>
+        <span class="badge badge-green">1,906 个文件</span>
+        <span class="badge badge-purple">TypeScript</span>
+        <span class="badge badge-orange">Bun Runtime</span>
+    </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+    <h2>目录</h2>
+    <ol>
+        <li><a href="#ch1">事件背景</a></li>
+        <li><a href="#ch2">总体架构</a></li>
+        <li><a href="#ch3">查询引擎与主循环</a></li>
+        <li><a href="#ch4">系统提示词工程</a></li>
+        <li><a href="#ch5">工具系统</a></li>
+        <li><a href="#ch6">多Agent蜂群架构</a></li>
+        <li><a href="#ch7">上下文管理与压缩</a></li>
+        <li><a href="#ch8">权限与安全</a></li>
+        <li><a href="#ch9">生态系统</a></li>
+        <li><a href="#ch10">隐藏功能与彩蛋</a></li>
+        <li><a href="#ch11">总结与启示</a></li>
+    </ol>
+</div>
+
+<!-- Chapter 1 -->
+<div class="chapter" id="ch1">
+    <h2 class="chapter-title">第一章：事件背景</h2>
+
+    <h3>1.1 泄漏事件时间线</h3>
+    <p>2026年3月31日凌晨，安全研究者 <strong>Chaofan Shou</strong> 在 X 上发布消息：Anthropic 发布到 npm 的 Claude Code 包（<code>@anthropic-ai/claude-code</code> v2.1.88）中，意外打包了一个 59.8 MB 的 source map 调试文件（<code>cli.js.map</code>），包含完整的、未混淆的 TypeScript 原始源码。</p>
+
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+timeline
+    title Claude Code 泄漏事件时间线
+    2025-02 : 首次泄漏
+             : Claude Code 首次上架 npm
+             : 打包了 source map
+             : 暴露 13 个月无人注意
+    2026-03-26 : CMS 配置泄漏
+               : Anthropic CMS 配置错误
+               : 暴露 Claude Mythos 模型细节
+    2026-03-31 : npm Source Map 泄漏
+               : v2.1.88 包体积暴涨
+               : 512000 行 TypeScript 源码曝光
+    2026-03-31 : 紧急响应
+               : 推送更新移除 source map
+               : 发起 DMCA 删除通知
+        </pre>
+    </div>
+
+    <h3>1.2 泄漏技术原理</h3>
+    <p>Source map 文件是构建工具链的标准产物。Bun bundler 默认生成 source map，Anthropic 没有在 <code>.npmignore</code> 中排除 <code>*.map</code> 文件。</p>
+
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart LR
+    A["TypeScript 源码\n1,906 个文件"] -->|"Bun bundler"| B["cli.js\n打包单文件"]
+    A -->|"默认生成"| C["cli.js.map\n59.8 MB"]
+    C -->|"包含"| D["sourcesContent\n完整源码"]
+    B -->|"npm publish"| E["npm 包"]
+    C -->|"意外打包"| E
+    E -->|"任何人下载"| F["完整源代码"]
+        </pre>
+    </div>
+
+    <h3>1.3 泄漏规模</h3>
+    <table>
+        <tr><th>指标</th><th>数值</th></tr>
+        <tr><td>总代码行数</td><td><strong>512,000+</strong></td></tr>
+        <tr><td>源文件数量</td><td><strong>1,906</strong> 个 TypeScript/TSX 文件</td></tr>
+        <tr><td>Source Map 大小</td><td><strong>59.8 MB</strong></td></tr>
+        <tr><td>npm 包体积变化</td><td>17 MB → 31 MB</td></tr>
+        <tr><td>Agent 工具数量</td><td>~42 个</td></tr>
+        <tr><td>Slash 命令数量</td><td>~85 个</td></tr>
+        <tr><td>内部功能开关</td><td>44 个</td></tr>
+    </table>
+
+    <h3>1.4 社区反应</h3>
+    <blockquote>"The irony is unreal" —— Anthropic 宣传 Claude 在编写和审查代码方面有多强大，结果自家代码因基础错误而泄漏。</blockquote>
+    <p>Anthropic 迅速推送 npm 更新移除 source map，删除旧版本包，发起 DMCA 删除通知。官方声明："这是人为造成的发布打包问题，不是安全漏洞。"</p>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Chapter 2 -->
+<div class="chapter" id="ch2">
+    <h2 class="chapter-title">第二章：总体架构</h2>
+
+    <h3>2.1 以 LLM 为内核的操作系统</h3>
+    <p>Claude Code 不是简单的 CLI 工具，而是一个<strong>以 LLM 为内核的操作系统</strong>。它拥有四个独立入口（CLI、初始化流程、MCP 模式、SDK），同一个 Agent 运行时服务四种交互界面。</p>
+
+    <table>
+        <tr><th>工具</th><th>比喻</th></tr>
+        <tr><td>Cursor</td><td>让程序员坐在你旁边，每步操作你看一眼点"允许"</td></tr>
+        <tr><td>Copilot Agent</td><td>给程序员一台新虚拟机随便折腾，搞完提交代码</td></tr>
+        <tr><td>Claude Code</td><td>让程序员直接用你的电脑，但配了9层安检系统</td></tr>
+    </table>
+
+    <h3>2.2 四大入口与启动流程</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart TB
+    subgraph entries ["四大入口"]
+        CLI["CLI 入口\ncli.tsx"]
+        INIT["初始化流程\ninit.ts"]
+        MCP["MCP 模式"]
+        SDK["SDK/Headless"]
+    end
+    subgraph fastpath ["Fast Path 分流"]
+        VERSION["--version"]
+        REMOTE["远程控制"]
+        BRIDGE["Bridge"]
+    end
+    CLI --> fastpath
+    fastpath -->|"非 fast path"| MAIN["main.tsx"]
+    INIT --> MAIN
+    MCP --> MAIN
+    SDK --> MAIN
+    MAIN --> MIGRATE["迁移检查"]
+    MIGRATE --> TRUST["信任对话框"]
+    TRUST --> LOAD["会话和工具加载"]
+    LOAD --> MODE{运行模式}
+    MODE -->|交互式| REPL["launchRepl"]
+    MODE -->|非交互| HEADLESS["runHeadless"]
+        </pre>
+    </div>
+
+    <h3>2.3 六层架构</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart TB
+    subgraph L1 ["终端 UI 层"]
+        INK["React + Ink"]
+        YOGA["Yoga 布局"]
+        VIM["Vim 模式"]
+    end
+    subgraph L2 ["主应用层"]
+        REPL2["REPL/Headless"]
+        CMDS["85+ 命令"]
+        PLUGINS["插件/Skills"]
+    end
+    subgraph L3 ["查询引擎层"]
+        QUERY["query 生成器"]
+        STREAM["流式 API"]
+        COMPACT["Compaction"]
+    end
+    subgraph L4 ["工具子系统"]
+        TOOLS["42 个工具"]
+        PERM["权限系统"]
+        SANDBOX["沙箱"]
+    end
+    subgraph L5 ["服务层"]
+        API["Claude API"]
+        SESSION["会话持久化"]
+        MEMORY["记忆系统"]
+    end
+    subgraph L6 ["传输层"]
+        LOCAL["本地 CLI"]
+        BRIDGESVC["Bridge"]
+        TRANSPORT["SSE/WebSocket"]
+    end
+    L1 --> L2 --> L3 --> L4 --> L5 --> L6
+        </pre>
+    </div>
+
+    <h3>2.4 技术栈</h3>
+    <table>
+        <tr><th>类别</th><th>技术</th></tr>
+        <tr><td>语言</td><td>TypeScript（严格模式）</td></tr>
+        <tr><td>运行时</td><td>Bun</td></tr>
+        <tr><td>终端 UI</td><td>React + Ink（自定义 reconciler）</td></tr>
+        <tr><td>布局引擎</td><td>Yoga（Flexbox）</td></tr>
+        <tr><td>API 通信</td><td>Claude Messages API + SSE</td></tr>
+        <tr><td>功能开关</td><td>GrowthBook + Statsig</td></tr>
+        <tr><td>遥测</td><td>Datadog + Perfetto</td></tr>
+    </table>
+
+    <h3>2.5 核心数据流</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+sequenceDiagram
+    participant U as 用户
+    participant INPUT as 输入编译器
+    participant CMD as 命令分流
+    participant API as Claude API
+    participant TOOLS as 工具执行器
+    participant PERM as 权限系统
+
+    U->>INPUT: 输入文本/命令
+    INPUT->>CMD: 分流判断
+    alt Slash 命令
+        CMD->>U: 直接执行返回
+    else 自然语言
+        CMD->>API: System Prompt + 消息
+        loop 工具调用循环
+            API-->>TOOLS: tool_use 块
+            TOOLS->>PERM: 权限检查
+            PERM-->>U: 需要确认?
+            TOOLS->>TOOLS: 执行 tool.call
+            TOOLS->>API: 工具结果
+        end
+        API-->>U: 最终响应
+    end
+        </pre>
+    </div>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Chapter 3 -->
+<div class="chapter" id="ch3">
+    <h2 class="chapter-title">第三章：查询引擎与主循环</h2>
+
+    <h3>3.1 query() 异步生成器</h3>
+    <p>查询引擎核心是 <code>query()</code> 异步生成器函数，编排每一次 AI 交互的完整生命周期。</p>
+
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart TB
+    START["query 开始"] --> INIT["Turn 初始化"]
+    INIT --> CHECK{"Token ≥ 87%?"}
+    CHECK -->|是| AUTO["AutoCompact"]
+    CHECK -->|否| MICRO{"旧结果清理?"}
+    AUTO --> MICRO
+    MICRO -->|是| MC["MicroCompact"]
+    MICRO -->|否| BUILD
+    MC --> BUILD
+    BUILD["组装 System Prompt"] --> HISTORY["历史过滤"]
+    HISTORY --> APICALL["调用 Claude API"]
+    APICALL --> TYPE{"响应类型"}
+    TYPE -->|text| RENDER["渲染文本"]
+    TYPE -->|thinking| THINK["渲染思考"]
+    TYPE -->|tool_use| DISPATCH["工具调度"]
+    RENDER --> CONT
+    THINK --> CONT
+    DISPATCH --> EXEC["执行工具"]
+    EXEC --> RESULT["工具结果注入"]
+    RESULT --> STOP["handleStopHooks"]
+    STOP --> CONT{"继续?"}
+    CONT -->|有 tool_use| CHECK
+    CONT -->|限制/结束| FINAL["TurnResult"]
+        </pre>
+    </div>
+
+    <h3>3.2 Think → Act → Observe 循环</h3>
+    <table>
+        <tr><th>阶段</th><th>实现</th><th>关键细节</th></tr>
+        <tr><td>Think</td><td>动态 System Prompt 组装</td><td>每轮重新构建</td></tr>
+        <tr><td>Act</td><td>工具执行引擎</td><td>并发执行、流式工具、批次处理</td></tr>
+        <tr><td>Observe</td><td>工具结果注入</td><td>结果作为下一轮 user 消息</td></tr>
+    </table>
+    <p>设计哲学：<strong>"少搭框架，多信模型"</strong>——没有 DAG、没有分类器，模型自己决定下一步。</p>
+
+    <h3>3.3 Token 预算管理</h3>
+    <div class="ascii-box">┌──────────────────────────────────────┐
+│        200K Token 上下文窗口          │
+├──────────────────────────────────────┤
+│  System Prompt         ~15-25K      │
+│  对话历史（压缩管理）    ~100-150K   │
+│  工具结果（预算控制）    ~20-30K     │
+│  响应缓冲区             ~10-20K     │
+└──────────────────────────────────────┘</div>
+
+    <h3>3.4 SDK 控制协议</h3>
+    <table>
+        <tr><th>消息类型</th><th>功能</th></tr>
+        <tr><td>init</td><td>初始化会话</td></tr>
+        <tr><td>interrupt</td><td>中断执行</td></tr>
+        <tr><td>can_use_tool</td><td>工具权限查询</td></tr>
+        <tr><td>get_context_usage</td><td>上下文使用量细分</td></tr>
+        <tr><td>rewind</td><td>回退消息</td></tr>
+        <tr><td>cron_task</td><td>定时任务管理</td></tr>
+    </table>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Chapter 4 -->
+<div class="chapter" id="ch4">
+    <h2 class="chapter-title">第四章：系统提示词工程</h2>
+
+    <h3>4.1 动态组装机制</h3>
+    <p>System Prompt 由 <code>getSystemPrompt()</code> 动态拼装，分为静态和动态部分，由 <code>SYSTEM_PROMPT_DYNAMIC_BOUNDARY</code> 分隔。</p>
+
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart TB
+    subgraph SP ["静态部分（可缓存 92%）"]
+        ID["身份定位"]
+        SPEC["系统规范"]
+        PHIL["任务哲学"]
+        RISK["风险规范"]
+        TOOL["工具手册"]
+    end
+    BOUND["DYNAMIC_BOUNDARY"]
+    subgraph DP ["动态部分（每轮重建）"]
+        MEM["记忆片段"]
+        ENV["环境信息"]
+        CMD["CLAUDE.md 配置"]
+        MCPI["MCP 插件说明"]
+        BUDGET["Token 预算"]
+    end
+    SP --> BOUND --> DP
+        </pre>
+    </div>
+
+    <h3>4.2 缓存策略</h3>
+    <ul>
+        <li><strong>边界之上</strong>：静态内容，API 完美缓存，实现 92% 前缀复用率</li>
+        <li><strong>边界之下</strong>：动态内容，每次对话不同，确保环境感知</li>
+    </ul>
+
+    <h3>4.3 CLAUDE.md 分层加载</h3>
+    <div class="ascii-box">~/.claude/CLAUDE.md          ← 全局配置
+./CLAUDE.md                  ← 项目根配置
+./.claude/rules/*.md         ← 条件规则
+./子目录/CLAUDE.md            ← 子目录配置</div>
+    <p>关键：CLAUDE.md 注入到<strong>用户消息</strong>（非 System Prompt），保持 prompt cache 稳定性。</p>
+
+    <h3>4.4 行为约束体系</h3>
+    <div class="ascii-box">任务哲学：
+├── 不添加用户没要求的功能
+├── 不过度抽象，不擅自重构
+├── 不乱加注释和文档字符串
+├── 方法失败先诊断再换策略
+└── 结果如实汇报，不假装测试过
+
+工具语法：
+├── 读文件必须用 FileRead
+├── 改文件必须用 FileEdit
+└── 无依赖调用必须并行
+
+Git 安全：
+├── 绝不 push --force / reset --hard
+├── 总是创建新 commit
+└── 不跳过 hooks</div>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Chapter 5 -->
+<div class="chapter" id="ch5">
+    <h2 class="chapter-title">第五章：工具系统</h2>
+
+    <h3>5.1 42 个工具一览</h3>
+    <table>
+        <tr><th>类别</th><th>工具</th><th>说明</th></tr>
+        <tr><td>文件操作</td><td>FileRead, FileWrite, FileEdit</td><td>读前写约束、mtime 一致性</td></tr>
+        <tr><td>搜索</td><td>Grep, Glob, ToolSearch</td><td>ripgrep 替代 RAG</td></tr>
+        <tr><td>执行</td><td>Bash, SleepTool</td><td>沙箱隔离、超时控制</td></tr>
+        <tr><td>代理</td><td>Agent (Task), TodoWrite</td><td>子代理生成、任务管理</td></tr>
+        <tr><td>Web</td><td>WebFetch, WebSearch</td><td>网页抓取、搜索</td></tr>
+        <tr><td>MCP</td><td>MCPTool</td><td>动态工具协议</td></tr>
+        <tr><td>计划</td><td>EnterPlanMode, ExitPlanMode</td><td>计划模式切换</td></tr>
+        <tr><td>定时</td><td>CronCreate/Delete/List</td><td>KAIROS 守护进程</td></tr>
+    </table>
+
+    <h3>5.2 Fail-closed 设计</h3>
+    <p><code>isConcurrencySafe</code> 和 <code>isReadOnly</code> 默认 <code>false</code>。忘了声明安全属性的工具被视为"有风险、会写入"。</p>
+
+    <h3>5.3 14 步工具执行流水线</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart TB
+    T1["1. 解析输入"] --> T2["2. Schema 校验"]
+    T2 --> T3["3. validateInput"]
+    T3 --> T4["4. 投机分类器"]
+    T4 --> T5["5. PreToolUse Hook"]
+    T5 --> T6["6. 权限决策"]
+    T6 --> T7{"结果"}
+    T7 -->|allow| T8["7. 修正输入"]
+    T7 -->|ask| ASK["询问用户"]
+    T7 -->|deny| DENY["拒绝"]
+    ASK -->|允许| T8
+    T8 --> T9["8. tool.call"]
+    T9 --> T10["9. 遥测日志"]
+    T10 --> T11["10. PostToolUse"]
+    T11 --> T12["11. 结构化输出"]
+    T12 --> T13["12. readFileState"]
+    T13 --> T14["13. Token 统计"]
+    T14 --> T15["14. 注入下一轮"]
+        </pre>
+    </div>
+
+    <h3>5.4 读前写约束</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart LR
+    READ["FileRead"] -->|更新| STATE["readFileState"]
+    WRITE["FileWrite"] -->|检查| CHK{"已读过?"}
+    EDIT["FileEdit"] -->|检查| CHK
+    CHK -->|是| OK["允许"]
+    CHK -->|否| BLOCK["阻止"]
+        </pre>
+    </div>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Chapter 6 -->
+<div class="chapter" id="ch6">
+    <h2 class="chapter-title">第六章：多Agent蜂群架构</h2>
+
+    <h3>6.1 六个内建 Agent</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart TB
+    MAIN["主 Agent"]
+    subgraph roles ["内建角色"]
+        GP["通用 Agent\n完整工具集"]
+        EXP["探索 Agent\n只读"]
+        PLN["计划 Agent\n只读"]
+        VER["验证 Agent\nTry to break it"]
+        SHL["Shell Agent"]
+        BRW["Browser Agent"]
+    end
+    MAIN --> GP
+    MAIN --> EXP
+    MAIN --> PLN
+    MAIN --> VER
+    MAIN --> SHL
+    MAIN --> BRW
+        </pre>
+    </div>
+
+    <h3>6.2 Coordinator 协调器模式</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart LR
+    R["Phase 1\nResearch"] --> S["Phase 2\nSynthesis"]
+    S --> I["Phase 3\nImplementation"]
+    I --> V["Phase 4\nVerification"]
+    R -->|"3并行"| W1["Worker 1"]
+    R --> W2["Worker 2"]
+    R --> W3["Worker 3"]
+    I -->|"2串行"| W4["Worker A"]
+    W4 --> W5["Worker B"]
+        </pre>
+    </div>
+
+    <h3>6.3 Verification Agent</h3>
+    <div class="info-box danger">
+        <strong>核心目标：Try to break it</strong><br>
+        强制运行 Build、测试套件、Linter。前端用浏览器自动化验证，后端用 curl 实测。<br>
+        最终判决：PASS / FAIL / PARTIAL。与写代码的 Agent 利益彻底隔离。
+    </div>
+
+    <h3>6.4 Fork 缓存优化</h3>
+    <p>所有子 Agent 统一使用 <code>'Fork started — processing in background'</code> 前缀，利用字节级前缀匹配复用缓存。</p>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Chapter 7 -->
+<div class="chapter" id="ch7">
+    <h2 class="chapter-title">第七章：上下文管理与压缩</h2>
+
+    <h3>7.1 三层压缩机制</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart TB
+    subgraph L1 ["第一层 MicroCompact"]
+        M1["旧工具结果替换为占位符"]
+        M2["不调 API，本地编辑"]
+    end
+    subgraph L2 ["第二层 AutoCompact"]
+        A1["Token ≥ 87% 触发"]
+        A2["生成摘要，熔断器防死循环"]
+    end
+    subgraph L3 ["第三层 Full Compact"]
+        F1["全对话摘要替换历史"]
+        F2["压缩后 ≤ 50K Token"]
+    end
+    START["压力检测"] --> L1 -->|不够| L2 -->|不够| L3
+        </pre>
+    </div>
+
+    <h3>7.2 autoDream 夜间记忆蒸馏</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart TB
+    subgraph triggers ["触发条件"]
+        T1["≥ 24h 未整合"]
+        T2["≥ 5 新会话"]
+        T3["无并发整合"]
+        T4["≥ 10min 未扫描"]
+    end
+    triggers --> P1["Orient: 读取记忆"]
+    P1 --> P2["Gather: 找过时记忆"]
+    P2 --> P3["Consolidate: 合并更新"]
+    P3 --> P4["Prune: ≤ 200行"]
+        </pre>
+    </div>
+    <p>AI 在低活跃期将原始日志蒸馏为结构化的用户偏好和项目背景文件。</p>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Chapter 8 -->
+<div class="chapter" id="ch8">
+    <h2 class="chapter-title">第八章：权限与安全</h2>
+
+    <h3>8.1 权限决策模型</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart LR
+    REQ["工具调用"] --> CHK["checkPermissions"]
+    CHK --> ALLOW["allow"]
+    CHK --> ASK["ask 用户"]
+    CHK --> DENY["deny"]
+    CHK --> PASS["passthrough"]
+        </pre>
+    </div>
+
+    <h3>8.2 沙箱机制</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart TB
+    BASH["Bash 执行"] --> OS{系统}
+    OS -->|Linux| BW["bubblewrap"]
+    OS -->|macOS| SB["sandbox-exec"]
+    BW --> R["文件/网络/进程隔离"]
+    SB --> R
+        </pre>
+    </div>
+
+    <h3>8.3 Hook 系统</h3>
+    <p>104 个 React Hooks + 运行时 Hook 事件。四阶段时序：InstructionsLoaded → UserPromptSubmit → PreToolUse → PermissionRequest。</p>
+
+    <h3>8.4 Undercover Mode</h3>
+    <p>Anthropic 员工（<code>USER_TYPE === 'ant'</code>）使用 Claude Code 贡献开源项目时，自动隐藏 AI 工具使用痕迹。</p>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Chapter 9 -->
+<div class="chapter" id="ch9">
+    <h2 class="chapter-title">第九章：生态系统</h2>
+
+    <h3>9.1 MCP 协议集成</h3>
+    <p>MCP 设备连接时，操作指南动态注入 System Prompt。工具名格式 <code>mcp__server__tool</code>。</p>
+
+    <h3>9.2 三套扩展机制</h3>
+    <table>
+        <tr><th>机制</th><th>特点</th></tr>
+        <tr><td>Skill</td><td>轻量 Markdown 工作流，声明 allowed-tools</td></tr>
+        <tr><td>Plugin</td><td>重型插件，可接管模型行为</td></tr>
+        <tr><td>Workflow</td><td>多步骤编排，条件分支</td></tr>
+    </table>
+
+    <h3>9.3 Bridge 远程会话</h3>
+    <table>
+        <tr><th>路径</th><th>说明</th></tr>
+        <tr><td>--remote-control</td><td>本地会话对外暴露</td></tr>
+        <tr><td>--remote</td><td>连接远端会话</td></tr>
+        <tr><td>--sdk-url</td><td>SDK 传输通道</td></tr>
+        <tr><td>useDirectConnect</td><td>裸 WebSocket IDE 直连</td></tr>
+    </table>
+
+    <h3>9.4 TUI 终端界面</h3>
+    <div class="mermaid-wrapper">
+        <pre class="mermaid">
+flowchart LR
+    R["React"] --> RC["Reconciler"]
+    RC --> V["虚拟 DOM"]
+    V --> Y["Yoga 布局"]
+    Y --> B["双缓冲"]
+    B --> D["Diff"]
+    D --> A["ANSI 输出"]
+        </pre>
+    </div>
+    <p>渲染节流 ~16ms（≈60fps），支持焦点管理、搜索 overlay、鼠标追踪。</p>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Chapter 10 -->
+<div class="chapter" id="ch10">
+    <h2 class="chapter-title">第十章：隐藏功能与彩蛋</h2>
+
+    <h3>10.1 BUDDY 数字宠物系统</h3>
+    <p>一个完整的宠物收集系统，基于 <code>userId + salt</code> 用 Mulberry32 确定性生成，有稀有度分级和闪光变体。计划 2026年4月预告、5月上线。</p>
+
+    <h3>10.2 KAIROS 守护进程</h3>
+    <p>后台持续运行模式，通过 Cron 工具管理定时任务，与 autoDream 联动。</p>
+
+    <h3>10.3 44 个功能开关</h3>
+    <table>
+        <tr><th>开关</th><th>说明</th></tr>
+        <tr><td>PROACTIVE</td><td>主动式交互</td></tr>
+        <tr><td>VOICE_MODE</td><td>语音输入</td></tr>
+        <tr><td>KAIROS</td><td>守护进程</td></tr>
+        <tr><td>BUDDY</td><td>数字宠物</td></tr>
+        <tr><td>COORDINATOR_MODE</td><td>多 Agent 协调器</td></tr>
+        <tr><td>CLAUDE_CODE_SIMPLE</td><td>简化三工具模式</td></tr>
+    </table>
+
+    <h3>10.4 未发布模型代号</h3>
+    <table>
+        <tr><th>代号</th><th>推测</th></tr>
+        <tr><td>Capybara</td><td>下一代推理模型</td></tr>
+        <tr><td>Fennec</td><td>轻量级快速模型</td></tr>
+        <tr><td>Numbat</td><td>特殊用途模型</td></tr>
+    </table>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Chapter 11 -->
+<div class="chapter" id="ch11">
+    <h2 class="chapter-title">第十一章：总结与启示</h2>
+
+    <h3>11.1 AI Agent 的壁垒</h3>
+    <p><strong>AI Agent 90% 的工作量在 "AI" 之外。</strong></p>
+    <div class="ascii-box">512,000 行代码的分布：
+├── 模型调用 & API 通信    ~5%
+├── 工具系统 & 权限管理    ~25%
+├── 上下文工程 & 压缩      ~15%
+├── UI/UX & 终端渲染       ~20%
+├── 生态集成 & 扩展        ~15%
+├── 会话管理 & 持久化      ~10%
+└── 遥测 & 监控 & 安全     ~10%</div>
+
+    <h3>11.2 可借鉴的工程实践</h3>
+    <table>
+        <tr><th>实践</th><th>适用场景</th></tr>
+        <tr><td>System Prompt 静态/动态分离</td><td>所有 LLM 应用</td></tr>
+        <tr><td>Fail-closed 安全设计</td><td>AI Agent 开发</td></tr>
+        <tr><td>三层上下文压缩</td><td>长对话 AI</td></tr>
+        <tr><td>Verification Agent</td><td>代码生成系统</td></tr>
+        <tr><td>读前写约束</td><td>文件操作工具</td></tr>
+        <tr><td>Fork 缓存前缀</td><td>多 Agent 系统</td></tr>
+        <tr><td>autoDream 记忆整合</td><td>长期记忆 AI</td></tr>
+    </table>
+
+    <h3>11.3 最后的思考</h3>
+    <blockquote>没有魔法，只有工程。1,906 个文件、512,000 行代码背后，是真实的工程师在解决真实的问题。核心护城河在模型——你可以复制架构，但无法复刻 Claude 的推理能力。</blockquote>
+
+    <div class="back-top"><a href="#top">↑ 返回顶部</a></div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    <p>本报告基于公开可获取的信息整理，仅用于技术分析和学习目的。</p>
+    <p>报告生成时间：2026年4月1日</p>
+</div>
+
+</div>
+
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'dark',
+        themeVariables: {
+            primaryColor: '#1f3a5f',
+            primaryTextColor: '#e6edf3',
+            primaryBorderColor: '#58a6ff',
+            lineColor: '#58a6ff',
+            secondaryColor: '#1a3a2a',
+            tertiaryColor: '#21262d',
+            fontSize: '14px'
+        },
+        flowchart: { useMaxWidth: true, htmlLabels: true },
+        sequence: { useMaxWidth: true }
+    });
+</script>
+
+</body>
+</html>

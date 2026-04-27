@@ -1,0 +1,21 @@
+[package]
+name = "cc-tui"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+cc-core = { workspace = true }
+cc-api = { workspace = true }
+cc-tools = { workspace = true }
+cc-query = { workspace = true }
+tokio = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+ratatui = { workspace = true }
+crossterm = { workspace = true }
+unicode-width = { workspace = true }
+chrono = { workspace = true }
+parking_lot = { workspace = true }

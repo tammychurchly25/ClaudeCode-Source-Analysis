@@ -1,0 +1,5 @@
+.DS_Store
+*.swp
+*.swo
+*~
+report_pdf.html

